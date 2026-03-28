@@ -4,11 +4,9 @@ import { drawThreeCards, getDefaultDeckMode } from "./tarot.js";
 const app = document.querySelector("#app");
 
 const state = {
-  question: "",
   deckMode: getDefaultDeckMode(),
   cards: [],
   reading: null,
-  error: "",
   drawing: false,
   loading: false
 };
@@ -175,8 +173,6 @@ async function startDivination() {
     return;
   }
 
-  state.question = question;
-  state.error = "";
   state.reading = null;
   renderReading();
 
@@ -203,8 +199,8 @@ async function startDivination() {
     state.reading = reading;
     setStatus("解读完成。愿你看见更清晰的方向。", false);
   } catch (error) {
-    state.error = error instanceof Error ? error.message : "解读失败";
-    setStatus(state.error, true);
+    const errorMessage = error instanceof Error ? error.message : "解读失败";
+    setStatus(errorMessage, true);
   } finally {
     state.loading = false;
     startBtn.disabled = false;
