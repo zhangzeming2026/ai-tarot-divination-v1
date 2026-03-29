@@ -48,11 +48,34 @@ body {
 .page {
   position: relative;
   z-index: 1;
-  max-width: 1080px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 32px 20px 56px;
   display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.hero {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 24px 18px 16px;
+}
+
+.page-left {
+  display: grid;
   gap: 18px;
+  height: 100%;
+}
+
+.page-right {
+  display: grid;
+  gap: 18px;
+  grid-template-rows: 1fr;
+  align-content: stretch;
+  height: 100%;
 }
 
 .hero {
@@ -405,10 +428,29 @@ select {
   line-height: 1.8;
 }
 
+.reading-panel {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.reading-content {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  height: 100%;
+}
+
 .per-card {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+.reading-panel .per-card {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .per-card article,
@@ -426,10 +468,39 @@ select {
   font-size: 0.95rem;
 }
 
+.reading-title-orientation {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .per-card p,
 .advice p {
   margin: 0;
   line-height: 1.7;
+}
+
+.reading-content.is-placeholder .overview {
+  min-height: 88px;
+}
+
+.reading-content.is-placeholder .per-card article {
+  min-height: 0;
+  height: 100%;
+}
+
+.reading-content.is-placeholder .advice {
+  min-height: 120px;
+}
+
+.reading-content.is-placeholder {
+  grid-template-rows: auto 1fr auto;
+}
+
+.reading-content.is-placeholder .per-card {
+  align-items: stretch;
 }
 
 @keyframes drift {
@@ -449,6 +520,12 @@ select {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 1200px) {
+  .page {
+    grid-template-columns: 1fr;
   }
 }
 

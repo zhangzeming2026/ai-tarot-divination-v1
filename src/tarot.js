@@ -451,3 +451,5 @@ export function drawThreeCards(deckMode = DEFAULT_DECK_MODE) {
 
   return picked;
 }
+
+export { DECK, MAJOR_IDS, POSITIONS };
