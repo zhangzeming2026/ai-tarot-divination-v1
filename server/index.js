@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -5,11 +8,20 @@ import { buildSystemPrompt, buildUserPrompt } from "./prompt.js";
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, "..");
+const imageDir = path.join(rootDir, "image");
+const clientDistDir = path.join(rootDir, "dist");
+const clientEntryFile = path.join(clientDistDir, "index.html");
+const hasClientBuild = fs.existsSync(clientEntryFile);
+
 const app = express();
 const port = Number(process.env.PORT || 8787);
 
 app.use(cors());
 app.use(express.json());
+app.use("/image", express.static(imageDir));
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "ai-diviner-api" });
@@ -92,6 +104,14 @@ app.post("/api/reading", async (req, res) => {
     return res.status(500).json({ error: `服务端异常：${message}` });
   }
 });
+
+if (hasClientBuild) {
+  app.use(express.static(clientDistDir));
+
+  app.get(/^(?!\/api\/).*/, (_req, res) => {
+    res.sendFile(clientEntryFile);
+  });
+}
 
 app.listen(port, () => {
   // eslint-disable-next-line no-console

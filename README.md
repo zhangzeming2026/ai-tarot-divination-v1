@@ -68,6 +68,39 @@ npm run dev
 npm run build
 ```
 
+生产构建后可直接用 Express 启动完整站点：
+
+```bash
+npm run start
+```
+
+- 页面和 API 会统一由 `http://localhost:8787` 提供
+
+## 生成服务器部署包
+
+```bash
+npm run package:deploy
+```
+
+执行后会自动：
+
+- 构建前端生产资源
+- 生成 `release/ai-diviner-deploy/` 部署目录
+- 生成 `release/ai-diviner-deploy.zip` 压缩包（Windows）
+
+部署包内置一键部署脚本：
+
+- Linux/macOS：`deploy/deploy.sh`
+- Windows Server：`deploy/deploy.ps1`
+
+部署包还包含：
+
+- Linux 开机自启服务模板：`deploy/systemd/ai-diviner.service`
+- Linux 自动安装服务脚本：`deploy/install-systemd.sh`
+- Nginx 反向代理模板：`deploy/nginx/ai-diviner.conf`
+
+详细服务器部署说明见 `DEPLOY.md`。
+
 ## 关键功能
 
 - 三张不重复抽牌（默认 78 张，可切换仅大阿卡那 22 张）
