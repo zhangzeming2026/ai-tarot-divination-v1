@@ -55,12 +55,16 @@ async function copyPath(from, to) {
 async function buildDeployManifest() {
   const rootPackagePath = path.join(rootDir, "package.json");
   const rootPackage = JSON.parse(await fs.readFile(rootPackagePath, "utf8"));
+  const nodeEngine = rootPackage?.engines?.node ?? ">=18";
 
   return {
     name: `${rootPackage.name}-deploy`,
     version: rootPackage.version,
     private: true,
     type: rootPackage.type ?? "module",
+    engines: {
+      node: nodeEngine
+    },
     scripts: {
       start: "node server/index.js"
     },

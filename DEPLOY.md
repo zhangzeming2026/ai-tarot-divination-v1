@@ -36,6 +36,7 @@ chmod +x deploy/deploy.sh
 
 脚本会自动：
 
+- 先校验 Node.js 版本（需 18+）
 - 检查 `.env`
 - 安装生产依赖
 - 停止旧进程
@@ -64,6 +65,8 @@ sudo ./deploy/install-systemd.sh /opt/ai-diviner
 ```powershell
 ./deploy/deploy.ps1
 ```
+
+脚本会先校验 Node.js 版本（需 18+），不满足时会提示并退出。
 
 ## Nginx 反向代理
 

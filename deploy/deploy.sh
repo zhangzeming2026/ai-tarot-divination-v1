@@ -8,6 +8,17 @@ LOG_FILE="$LOG_DIR/app.log"
 
 cd "$ROOT_DIR"
 
+if ! command -v node >/dev/null 2>&1; then
+  echo "未检测到 Node.js，请先安装 Node.js 18+ 后再部署。"
+  exit 1
+fi
+
+NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
+if [ "$NODE_MAJOR" -lt 18 ]; then
+  echo "当前 Node.js 版本过低（$(node -v)），请升级到 18+ 后再部署。"
+  exit 1
+fi
+
 if [ ! -f ".env" ]; then
   cp .env.example .env
   echo "已自动创建 .env，请补充 OPENAI_API_KEY 后重新执行。"

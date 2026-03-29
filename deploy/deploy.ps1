@@ -7,6 +7,25 @@ $LogFile = Join-Path $LogDir "app.log"
 
 Set-Location $RootDir
 
+$NodeCommand = Get-Command node -ErrorAction SilentlyContinue
+if (-not $NodeCommand) {
+  Write-Host "未检测到 Node.js，请先安装 Node.js 18+ 后再部署。"
+  exit 1
+}
+
+$NodeMajorRaw = & node -p "process.versions.node.split('.')[0]" 2>$null
+$NodeMajor = 0
+[void][int]::TryParse($NodeMajorRaw, [ref]$NodeMajor)
+
+if ($NodeMajor -lt 18) {
+  $NodeVersion = (& node -v 2>$null)
+  if (-not $NodeVersion) {
+    $NodeVersion = "unknown"
+  }
+  Write-Host "当前 Node.js 版本过低（$NodeVersion），请升级到 18+ 后再部署。"
+  exit 1
+}
+
 if (-not (Test-Path ".env")) {
   Copy-Item ".env.example" ".env"
   Write-Host "已自动创建 .env，请补充 OPENAI_API_KEY 后重新执行。"

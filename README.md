@@ -93,6 +93,8 @@ npm run package:deploy
 - Linux/macOS：`deploy/deploy.sh`
 - Windows Server：`deploy/deploy.ps1`
 
+部署脚本会先校验 Node.js 版本（需 18+），不满足时会直接提示并退出。
+
 部署包还包含：
 
 - Linux 开机自启服务模板：`deploy/systemd/ai-diviner.service`
