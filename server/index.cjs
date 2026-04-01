@@ -16,6 +16,80 @@ const HEARTBEAT_TIMEOUT_MS = 15000;
 const EXIT_GRACE_MS = 5000;
 let exitTimer = null;
 
+function buildMissingFrontendHtml({ isPackagedExe, distDir, hasDist }) {
+  const title = "前端资源缺失";
+  const details = isPackagedExe
+    ? [
+        "当前是 EXE 运行模式，但同目录下没有找到 dist 前端资源。",
+        "请不要只单独复制 ai-diviner.exe。",
+        "请保留整个 release/exe 目录，或重新执行 npm install 与 npm run build:exe。"
+      ]
+    : [
+        "当前仓库缺少 dist 前端资源。",
+        "请先在项目根目录执行 npm install 与 npm run build。"
+      ];
+
+  const items = details.map((item) => `<li>${item}</li>`).join("");
+  const modeLabel = isPackagedExe ? "EXE 模式" : "源码模式";
+
+  return `<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${title}</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Microsoft YaHei", sans-serif;
+        background: linear-gradient(180deg, #f6f1e8 0%, #e7dcc9 100%);
+        color: #2f2418;
+      }
+      main {
+        max-width: 720px;
+        margin: 8vh auto;
+        padding: 32px;
+        background: rgba(255, 251, 245, 0.9);
+        border: 1px solid #d4c4ab;
+        border-radius: 18px;
+        box-shadow: 0 18px 50px rgba(63, 42, 19, 0.12);
+      }
+      h1 {
+        margin-top: 0;
+        font-size: 28px;
+      }
+      p, li {
+        line-height: 1.7;
+        font-size: 16px;
+      }
+      code {
+        padding: 2px 6px;
+        background: #f0e6d8;
+        border-radius: 6px;
+      }
+      .meta {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px dashed #ccb89a;
+        color: #6b563f;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>${title}</h1>
+      <p>服务已经启动，但浏览器页面所需的前端文件不存在，所以无法显示占卜界面。</p>
+      <ul>${items}</ul>
+      <div class="meta">
+        <p>运行模式：${modeLabel}</p>
+        <p>dist 目录：<code>${distDir || "未找到"}</code></p>
+        <p>hasDist：<code>${String(hasDist)}</code></p>
+      </div>
+    </main>
+  </body>
+</html>`;
+}
+
 function clearExitTimer() {
   if (exitTimer) {
     clearTimeout(exitTimer);
@@ -256,10 +330,7 @@ if (hasDist) {
       return next();
     }
 
-    return res.status(503).json({ 
-      error: "前端资源未配置", 
-      debug: { isPackagedExe, distDir, hasDist } 
-    });
+    return res.status(503).type("html").send(buildMissingFrontendHtml({ isPackagedExe, distDir, hasDist }));
   });
 }
 

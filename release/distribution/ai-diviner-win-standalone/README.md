@@ -10,11 +10,12 @@
 
 2. **启动程序**
    - 双击 「启动.bat」
-   - 或直接双击 「ai-diviner.exe」
+   - 如需静默启动，可双击 `start-exe.bat`
    - 程序会自动打开浏览器访问 http://localhost:8787
 
 ### 后续运行
 - 直接双击「启动.bat」即可
+- 请保留整个目录，不要只单独复制 `ai-diviner.exe`
 
 ## 环境变量说明
 
@@ -40,6 +41,10 @@
 
 ### 浏览器未自动打开
 - 请手动访问 http://localhost:8787
+
+### 提示前端资源缺失或无法启动
+- 请确认 `dist/`、`image/`、`start-exe.vbs` 与 `ai-diviner.exe` 在同一目录中
+- 不要只单独复制 exe 文件
 
 ## 阿里百炼/DashScope 配置示例
 

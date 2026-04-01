@@ -76,6 +76,19 @@ npm run start
 
 - 页面和 API 会统一由 `http://localhost:8787` 提供
 
+## Windows EXE 说明
+
+源码仓库中的 `dist/` 与 `release/` 都属于构建产物，已被 Git 忽略，不保证从 GitHub 克隆后仍然完整可运行。
+
+如果你是在新机器上从 GitHub 拉取源码后想运行 EXE，请在仓库根目录重新生成：
+
+```bash
+npm install
+npm run build:exe
+```
+
+执行后请使用 `release/exe/` 整个目录运行，不要只单独复制 `ai-diviner.exe`。
+
 ## 生成服务器部署包
 
 ```bash
