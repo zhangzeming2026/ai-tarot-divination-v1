@@ -13,21 +13,62 @@ const state = {
   selectedPositions: [false, false, false],
   pendingCards: [],
   selectingPosition: null,
-  currentQuestion: "",
+  currentQuestion: ""
 };
+
+const clientSessionId =
+  (window.crypto && typeof window.crypto.randomUUID === "function")
+    ? window.crypto.randomUUID()
+    : `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+let heartbeatTimer = null;
+
+function sendSessionPing() {
+  return fetch("/api/session/ping", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId: clientSessionId }),
+    keepalive: true
+  }).catch(() => {});
+}
+
+function sendSessionCloseBeacon() {
+  const payload = JSON.stringify({ sessionId: clientSessionId });
+  if (navigator.sendBeacon) {
+    const blob = new Blob([payload], { type: "application/json" });
+    navigator.sendBeacon("/api/session/close", blob);
+    return;
+  }
+
+  fetch("/api/session/close", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    keepalive: true
+  }).catch(() => {});
+}
+
+function initAutoShutdownHeartbeat() {
+  void sendSessionPing();
+  heartbeatTimer = window.setInterval(() => {
+    void sendSessionPing();
+  }, 5000);
+
+  window.addEventListener("beforeunload", sendSessionCloseBeacon);
+  window.addEventListener("pagehide", sendSessionCloseBeacon);
+}
 
 app.innerHTML = `
   <div class="sky"></div>
   <main class="page">
     <section class="hero">
       <p class="eyebrow">STAR VEIL ORACLE</p>
-      <h1>星渊秘语 · AI 塔罗占卜</h1>
+      <h1>星渊秘语 · 塔罗占卜</h1>
       <p class="subtitle">在深空与金纹之间，抽取三张牌，聆听关于你问题的答案。</p>
     </section>
 
     <div class="page-left">
       <section class="panel ask-panel">
-        <label for="questionInput">你的问题</label>
+        <label for="questionInput">你的诉求</label>
         <textarea id="questionInput" rows="3" placeholder="例如：我最近事业运如何？"></textarea>
         <div class="config-row">
           <label for="deckModeSelect">牌池范围</label>
@@ -48,7 +89,7 @@ app.innerHTML = `
 
     <div class="page-right">
       <section class="panel reading-panel" id="readingPanel">
-        <h2>AI 占卜解读</h2>
+        <h2>占卜解读</h2>
         <div id="readingContent" class="reading-content"></div>
       </section>
     </div>
@@ -82,7 +123,7 @@ function initializeDefaultCards() {
       meaning: "",
       symbol: "✦",
       imageUrl: "/image/roses.png",
-      revealed: true,
+      revealed: true
     },
     {
       id: "default-2",
@@ -95,7 +136,7 @@ function initializeDefaultCards() {
       meaning: "",
       symbol: "✦",
       imageUrl: "/image/roses.png",
-      revealed: true,
+      revealed: true
     },
     {
       id: "default-3",
@@ -108,8 +149,8 @@ function initializeDefaultCards() {
       meaning: "",
       symbol: "✦",
       imageUrl: "/image/roses.png",
-      revealed: true,
-    },
+      revealed: true
+    }
   ];
   renderCards();
 }
@@ -140,15 +181,16 @@ function setStatus(message, isError = false) {
 
 function renderCards() {
   cardsGrid.innerHTML = state.cards
-    .map((card, index) => {
-      const displayArcana = card.displayArcana ?? card.arcana;
-      const displayArcanaType = card.displayArcanaType ?? card.arcanaType;
-      const displayName = card.displayName ?? card.name;
-      const displayOrientation = card.displayOrientation ?? card.orientation;
-      const displayPosition = card.displayPosition ?? card.position;
-      const displaySymbol = card.displaySymbol ?? card.symbol;
+    .map(
+      (card, index) => {
+        const displayArcana = card.displayArcana ?? card.arcana;
+        const displayArcanaType = card.displayArcanaType ?? card.arcanaType;
+        const displayName = card.displayName ?? card.name;
+        const displayOrientation = card.displayOrientation ?? card.orientation;
+        const displayPosition = card.displayPosition ?? card.position;
+        const displaySymbol = card.displaySymbol ?? card.symbol;
 
-      return `
+        return `
       <article class="tarot-card ${card.revealed ? "revealed" : ""}" data-index="${index}" style="--delay:${index * 250}ms">
         <div class="card-inner">
           <div class="card-face card-back">
@@ -170,7 +212,8 @@ function renderCards() {
         </div>
       </article>
     `;
-    })
+      }
+    )
     .join("");
 
   attachCardImageFallback();
@@ -189,11 +232,9 @@ function attachCardImageFallback() {
 
         image.dataset.fallbackApplied = "1";
         image.classList.add("is-fallback");
-        image.src = createFallbackImageDataUrl(
-          image.dataset.imageFile || "unknown-file.png",
-        );
+        image.src = createFallbackImageDataUrl(image.dataset.imageFile || "unknown-file.png");
       },
-      { once: true },
+      { once: true }
     );
   });
 }
@@ -220,9 +261,7 @@ function updateCardImageAtPosition(positionIndex, imageFile, altText) {
 
     image.dataset.fallbackApplied = "1";
     image.classList.add("is-fallback");
-    image.src = createFallbackImageDataUrl(
-      image.dataset.imageFile || "unknown-file.png",
-    );
+    image.src = createFallbackImageDataUrl(image.dataset.imageFile || "unknown-file.png");
   };
   image.src = `/image/${encodeURIComponent(imageFile)}`;
 }
@@ -257,8 +296,7 @@ function updateCardDisplayAtPosition(positionIndex, card) {
   }
 
   if (orientation) {
-    const orientationValue =
-      card.displayOrientation ?? card.orientation ?? "upright";
+    const orientationValue = card.displayOrientation ?? card.orientation ?? "upright";
     orientation.textContent = orientationValue === "upright" ? "正位" : "逆位";
   }
 
@@ -271,12 +309,8 @@ function updateCardDisplayAtPosition(positionIndex, card) {
   }
 
   if (illustration) {
-    const orientationValue =
-      card.displayOrientation ?? card.orientation ?? "upright";
-    illustration.classList.toggle(
-      "is-reversed",
-      orientationValue === "reversed",
-    );
+    const orientationValue = card.displayOrientation ?? card.orientation ?? "upright";
+    illustration.classList.toggle("is-reversed", orientationValue === "reversed");
   }
 }
 
@@ -299,7 +333,7 @@ function renderReading() {
     readingPanel.hidden = false;
     readingContent.classList.add("is-placeholder");
     readingContent.innerHTML = `
-      <p class="overview">请输入问题并完成三张卡牌选取后，这里将显示 AI 占卜解读。</p>
+      <p class="overview">请输入你的诉求并完成三张卡牌选取后，这里将显示占卜解读。</p>
       <div class="per-card">
         <article>
           <h3>第一张卡牌解读</h3>
@@ -334,7 +368,7 @@ function renderReading() {
               <h3>${formatReadingTitle(item.title)}</h3>
               <p>${item.text}</p>
             </article>
-          `,
+          `
         )
         .join("")}
     </div>
@@ -400,13 +434,13 @@ async function selectCardAtPosition(positionIndex) {
       ...baseCard,
       imageFile: randomCard.imageFile,
       imageUrl: `/image/${encodeURIComponent(randomCard.imageFile)}`,
-      revealed: true,
+      revealed: true
     };
 
     updateCardImageAtPosition(
       positionIndex,
       randomCard.imageFile,
-      baseCard.displayName ?? baseCard.name ?? "塔罗牌",
+      baseCard.displayName ?? baseCard.name ?? "塔罗牌"
     );
 
     await sleep(cycleInterval);
@@ -421,16 +455,14 @@ async function selectCardAtPosition(positionIndex) {
     displayOrientation: finalCard.orientation,
     displayPosition: finalCard.position,
     displaySymbol: finalCard.symbol,
-    revealed: true,
+    revealed: true
   };
 
   updateCardDisplayAtPosition(positionIndex, state.cards[positionIndex]);
   updateCardImageAtPosition(
     positionIndex,
     finalCard.imageFile,
-    state.cards[positionIndex].displayName ??
-      state.cards[positionIndex].name ??
-      "塔罗牌",
+    state.cards[positionIndex].displayName ?? state.cards[positionIndex].name ?? "塔罗牌"
   );
 
   state.selectedPositions[positionIndex] = true;
@@ -440,9 +472,7 @@ async function selectCardAtPosition(positionIndex) {
   const remainingCount = 3 - selectedCount;
 
   if (remainingCount > 0) {
-    setStatus(
-      `已选中 ${selectedCount} 张牌，请继续点击其余牌位（剩余 ${remainingCount} 张）。`,
-    );
+    setStatus(`已选中 ${selectedCount} 张牌，请继续点击其余牌位（剩余 ${remainingCount} 张）。`);
     return;
   }
 
@@ -491,7 +521,7 @@ async function startDivination() {
   state.drawing = true;
   state.selectionActive = true;
   startBtn.disabled = true;
-  setStatus("点击下方任意卡牌开始选取；三张都选完后将进入 AI 解读。");
+  setStatus("点击下方任意卡牌开始选取；三张都选完后将进入 AI 解读。", true);
 
   // 获取最终选中的3张卡牌
   const finalCards = drawThreeCards(state.deckMode);
@@ -506,16 +536,12 @@ async function startDivination() {
       imageFile: "roses.png",
       imageUrl: "/image/roses.png",
       displayArcana: frameCard.displayArcana ?? frameCard.arcana ?? "—",
-      displayArcanaType:
-        frameCard.displayArcanaType ?? frameCard.arcanaType ?? "占卜",
-      displayName:
-        frameCard.displayName ?? frameCard.name ?? `第${index + 1}张牌`,
-      displayOrientation:
-        frameCard.displayOrientation ?? frameCard.orientation ?? "upright",
-      displayPosition:
-        frameCard.displayPosition ?? frameCard.position ?? card.position,
+      displayArcanaType: frameCard.displayArcanaType ?? frameCard.arcanaType ?? "占卜",
+      displayName: frameCard.displayName ?? frameCard.name ?? `第${index + 1}张牌`,
+      displayOrientation: frameCard.displayOrientation ?? frameCard.orientation ?? "upright",
+      displayPosition: frameCard.displayPosition ?? frameCard.position ?? card.position,
       displaySymbol: frameCard.displaySymbol ?? frameCard.symbol ?? "✦",
-      revealed: true,
+      revealed: true
     };
   });
   renderCards();
@@ -525,7 +551,7 @@ async function fetchReading(question, cards) {
   const response = await fetch("/api/reading", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
       question,
@@ -534,9 +560,9 @@ async function fetchReading(question, cards) {
         name,
         orientation,
         position,
-        meaning,
-      })),
-    }),
+        meaning
+      }))
+    })
   });
 
   const payload = await response.json();
@@ -557,3 +583,5 @@ function sleep(ms) {
 // 页面加载时初始化显示默认卡牌
 initializeDefaultCards();
 renderReading();
+initAutoShutdownHeartbeat();
+

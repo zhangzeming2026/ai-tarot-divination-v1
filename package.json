@@ -8,7 +8,9 @@
     "dev:client": "vite",
     "dev:server": "node server/index.js",
     "build": "vite build",
-    "package:deploy": "node scripts/build-deploy-package.mjs",
+    "build:exe": "node scripts/build-exe.mjs",
+    "package:deploy": "node scripts/package-deploy.mjs",
+    "package:exe": "node scripts/package-exe-zip.mjs",
     "preview": "vite preview",
     "start": "node server/index.js"
   },
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",
+    "pkg": "^5.8.1",
     "vite": "^5.4.12"
   }
 }

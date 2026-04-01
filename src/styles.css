@@ -49,6 +49,7 @@ body {
   position: relative;
   z-index: 1;
   max-width: 1400px;
+  min-height: 90vh;
   margin: 0 auto;
   padding: 32px 20px 56px;
   display: grid;
@@ -188,6 +189,8 @@ select {
 
 .status-line.is-error {
   color: var(--danger);
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255, 143, 153, 0.28);
 }
 
 .cards-grid {
@@ -539,6 +542,58 @@ select {
     max-width: 260px;
     margin-inline: auto;
     width: 100%;
+  }
+}
+
+@media (max-height: 900px) {
+  .page {
+    min-height: 100vh;
+    padding: 16px 16px 24px;
+    gap: 14px;
+  }
+
+  .hero {
+    padding: 10px 10px 8px;
+  }
+
+  h1 {
+    margin: 6px 0;
+    font-size: clamp(1.45rem, 3.2vw, 2.2rem);
+  }
+
+  .subtitle {
+    font-size: 0.92rem;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  .page-left,
+  .page-right,
+  .ask-panel,
+  .reading-content {
+    gap: 10px;
+  }
+
+  textarea {
+    min-height: 72px;
+  }
+
+  .cards-grid {
+    gap: 10px;
+  }
+
+  .card-illustration {
+    min-height: 104px;
+  }
+
+  .reading-content.is-placeholder .overview {
+    min-height: 64px;
+  }
+
+  .reading-content.is-placeholder .advice {
+    min-height: 92px;
   }
 }
 
