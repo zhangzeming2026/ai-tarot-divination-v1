@@ -521,7 +521,7 @@ async function startDivination() {
   state.drawing = true;
   state.selectionActive = true;
   startBtn.disabled = true;
-  setStatus("点击下方任意卡牌开始选取；三张都选完后将进入 AI 解读。", true);
+  setStatus("点击下方任意卡牌开始选取；三张都选完后将进入解读。", true);
 
   // 获取最终选中的3张卡牌
   const finalCards = drawThreeCards(state.deckMode);

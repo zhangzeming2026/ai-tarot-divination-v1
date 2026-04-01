@@ -14,7 +14,9 @@ const isPackagedExe = Boolean(process.pkg);
 const clientSessions = new Map();
 const HEARTBEAT_TIMEOUT_MS = 15000;
 const EXIT_GRACE_MS = 5000;
+const IDLE_MONITOR_INTERVAL_MS = 3000;
 let exitTimer = null;
+let idleMonitor = null;
 
 function buildMissingFrontendHtml({ isPackagedExe, distDir, hasDist }) {
   const title = "前端资源缺失";
@@ -130,6 +132,21 @@ function scheduleExitWhenIdle() {
     }
     exitTimer = null;
   }, EXIT_GRACE_MS);
+}
+
+function ensureIdleMonitor() {
+  if (!isPackagedExe || idleMonitor) {
+    return;
+  }
+
+  idleMonitor = setInterval(() => {
+    pruneInactiveSessions();
+    scheduleExitWhenIdle();
+  }, IDLE_MONITOR_INTERVAL_MS);
+
+  if (typeof idleMonitor.unref === "function") {
+    idleMonitor.unref();
+  }
 }
 
 const runtimeRoot = isPackagedExe ? path.dirname(process.execPath) : path.resolve(__dirname, "..");
@@ -346,6 +363,7 @@ app.listen(port, () => {
     }).unref();
 
     // If user never opens the page, close EXE automatically after startup grace period.
+    ensureIdleMonitor();
     scheduleExitWhenIdle();
   }
 });

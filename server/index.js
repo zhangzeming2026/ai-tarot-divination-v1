@@ -17,6 +17,64 @@ const distDir = path.resolve(projectRoot, "dist");
 const imageDir = path.resolve(projectRoot, "image");
 const isPackagedExe = false;
 const hasDist = fs.existsSync(distDir);
+const clientSessions = new Map();
+const HEARTBEAT_TIMEOUT_MS = 15000;
+const EXIT_GRACE_MS = 5000;
+const IDLE_MONITOR_INTERVAL_MS = 3000;
+let exitTimer = null;
+let idleMonitor = null;
+let hadActiveSession = false;
+
+function clearExitTimer() {
+  if (exitTimer) {
+    clearTimeout(exitTimer);
+    exitTimer = null;
+  }
+}
+
+function pruneInactiveSessions() {
+  const now = Date.now();
+  for (const [sessionId, lastSeen] of clientSessions.entries()) {
+    if (now - lastSeen > HEARTBEAT_TIMEOUT_MS) {
+      clientSessions.delete(sessionId);
+    }
+  }
+}
+
+function scheduleExitWhenIdle() {
+  if (clientSessions.size > 0 || !hadActiveSession) {
+    clearExitTimer();
+    return;
+  }
+
+  if (exitTimer) {
+    return;
+  }
+
+  exitTimer = setTimeout(() => {
+    pruneInactiveSessions();
+    if (clientSessions.size === 0 && hadActiveSession) {
+      console.log("[INFO] No active browser sessions. Exiting process.");
+      process.exit(0);
+    }
+    exitTimer = null;
+  }, EXIT_GRACE_MS);
+}
+
+function ensureIdleMonitor() {
+  if (idleMonitor) {
+    return;
+  }
+
+  idleMonitor = setInterval(() => {
+    pruneInactiveSessions();
+    scheduleExitWhenIdle();
+  }, IDLE_MONITOR_INTERVAL_MS);
+
+  if (typeof idleMonitor.unref === "function") {
+    idleMonitor.unref();
+  }
+}
 
 function buildMissingFrontendHtml() {
   const title = "前端资源缺失";
@@ -101,6 +159,29 @@ if (hasDist) {
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "ai-diviner-api" });
+});
+
+app.post("/api/session/ping", (req, res) => {
+  const sessionId = String((req.body && req.body.sessionId) || "").trim();
+  if (!sessionId) {
+    return res.status(400).json({ error: "missing sessionId" });
+  }
+
+  hadActiveSession = true;
+  clientSessions.set(sessionId, Date.now());
+  clearExitTimer();
+  ensureIdleMonitor();
+  return res.json({ ok: true });
+});
+
+app.post("/api/session/close", (req, res) => {
+  const sessionId = String((req.body && req.body.sessionId) || "").trim();
+  if (sessionId) {
+    clientSessions.delete(sessionId);
+  }
+
+  scheduleExitWhenIdle();
+  return res.json({ ok: true });
 });
 
 app.post("/api/reading", async (req, res) => {
