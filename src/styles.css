@@ -181,7 +181,14 @@ select {
   cursor: not-allowed;
 }
 
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .status-line {
+  flex: 1;
   min-height: 1.5em;
   color: var(--muted);
   margin: 0;
@@ -469,6 +476,7 @@ select {
   margin: 0 0 8px;
   color: var(--gold-soft);
   font-size: 0.95rem;
+  text-align: center;
 }
 
 .reading-title-orientation {
@@ -536,6 +544,14 @@ select {
   .cards-grid,
   .per-card {
     grid-template-columns: 1fr;
+  }
+
+  .action-row {
+    flex-wrap: wrap;
+  }
+
+  .status-line {
+    width: 100%;
   }
 
   .tarot-card {

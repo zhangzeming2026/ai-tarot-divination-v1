@@ -68,17 +68,19 @@ app.innerHTML = `
 
     <div class="page-left">
       <section class="panel ask-panel">
-        <label for="questionInput">你的诉求</label>
-        <textarea id="questionInput" rows="3" placeholder="例如：我最近事业运如何？"></textarea>
+       
+        <textarea id="questionInput" rows="3" placeholder="输入你的诉求。例如：我最近事业运如何？"></textarea>
         <div class="config-row">
-          <label for="deckModeSelect">牌池范围</label>
+          <label for="deckModeSelect"></label>
           <select id="deckModeSelect" aria-label="牌池范围">
-            <option value="full">完整 78 张（大阿卡那 + 小阿卡那）</option>
-            <option value="major">仅 22 张大阿卡那</option>
+            <option value="full">下拉选择牌池范围：完整 78 张（大阿卡那 + 小阿卡那）</option>
+            <option value="major">下拉选择牌池范围：仅 22 张大阿卡那</option>
           </select>
         </div>
-        <button id="startBtn" class="oracle-btn">开始占卜</button>
-        <p id="statusLine" class="status-line"></p>
+        <div class="action-row">
+          <button id="startBtn" class="oracle-btn">开始占卜</button>
+          <p id="statusLine" class="status-line"></p>
+        </div>
       </section>
 
       <section class="panel cards-panel">
@@ -503,7 +505,7 @@ async function startDivination() {
   const question = questionInput.value.trim();
 
   if (!question) {
-    setStatus("请先输入你想咨询的问题。", true);
+    setStatus("请先输入你的诉求。", true);
     return;
   }
 
