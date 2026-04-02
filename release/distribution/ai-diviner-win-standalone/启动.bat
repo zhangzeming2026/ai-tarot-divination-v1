@@ -5,5 +5,5 @@ if not exist .env if exist .env.example copy /Y .env.example .env >nul
 echo.
 echo 正在启动 AI 占卜程序...
 echo.
-start "" ai-diviner.exe
+start "" wscript.exe "%~dp0start-exe.vbs"
 timeout /t 2 /nobreak

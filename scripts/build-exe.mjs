@@ -101,13 +101,28 @@ const startVbs = [
   "Set shell = CreateObject(\"WScript.Shell\")",
   "Set fso = CreateObject(\"Scripting.FileSystemObject\")",
   "base = fso.GetParentFolderName(WScript.ScriptFullName)",
+  "exeFile = fso.BuildPath(base, \"ai-diviner.exe\")",
+  "distDir = fso.BuildPath(base, \"dist\")",
+  "imageDir = fso.BuildPath(base, \"image\")",
   "envFile = fso.BuildPath(base, \".env\")",
   "envExample = fso.BuildPath(base, \".env.example\")",
   "If (Not fso.FileExists(envFile)) And fso.FileExists(envExample) Then",
   "  fso.CopyFile envExample, envFile, True",
   "End If",
+  "If Not fso.FileExists(exeFile) Then",
+  "  MsgBox \"AI Diviner: Missing ai-diviner.exe. Keep directory complete.\", 16, \"Error\"",
+  "  WScript.Quit 1",
+  "End If",
+  "If Not fso.FolderExists(distDir) Then",
+  "  MsgBox \"AI Diviner: Missing dist folder. Keep directory complete.\", 16, \"Error\"",
+  "  WScript.Quit 1",
+  "End If",
+  "If Not fso.FolderExists(imageDir) Then",
+  "  MsgBox \"AI Diviner: Missing image folder. Keep directory complete.\", 16, \"Error\"",
+  "  WScript.Quit 1",
+  "End If",
   "shell.CurrentDirectory = base",
-  "shell.Run Chr(34) & fso.BuildPath(base, \"ai-diviner.exe\") & Chr(34), 0, False"
+  "shell.Run Chr(34) & exeFile & Chr(34), 0, False"
 ].join("\r\n");
 writeText(path.join(releaseRoot, "start-exe.vbs"), `${startVbs}\r\n`);
 
@@ -123,6 +138,7 @@ const readme = [
   "## 注意",
   "",
   "- 首次运行请确保已配置有效 OPENAI_API_KEY。",
+  "- 请保留整个 release/exe 目录一起运行，不要只单独复制 ai-diviner.exe。",
   "- 如 8787 端口被占用，请在 .env 中修改 PORT。",
   "- 关闭程序请结束 ai-diviner.exe 进程。"
 ].join("\n");

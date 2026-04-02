@@ -15,7 +15,139 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..");
 const distDir = path.resolve(projectRoot, "dist");
 const imageDir = path.resolve(projectRoot, "image");
+const isPackagedExe = false;
 const hasDist = fs.existsSync(distDir);
+const clientSessions = new Map();
+const HEARTBEAT_TIMEOUT_MS = 15000;
+const EXIT_GRACE_MS = 5000;
+const IDLE_MONITOR_INTERVAL_MS = 3000;
+let exitTimer = null;
+let idleMonitor = null;
+let hadActiveSession = false;
+
+function clearExitTimer() {
+  if (exitTimer) {
+    clearTimeout(exitTimer);
+    exitTimer = null;
+  }
+}
+
+function pruneInactiveSessions() {
+  const now = Date.now();
+  for (const [sessionId, lastSeen] of clientSessions.entries()) {
+    if (now - lastSeen > HEARTBEAT_TIMEOUT_MS) {
+      clientSessions.delete(sessionId);
+    }
+  }
+}
+
+function scheduleExitWhenIdle() {
+  if (clientSessions.size > 0 || !hadActiveSession) {
+    clearExitTimer();
+    return;
+  }
+
+  if (exitTimer) {
+    return;
+  }
+
+  exitTimer = setTimeout(() => {
+    pruneInactiveSessions();
+    if (clientSessions.size === 0 && hadActiveSession) {
+      console.log("[INFO] No active browser sessions. Exiting process.");
+      process.exit(0);
+    }
+    exitTimer = null;
+  }, EXIT_GRACE_MS);
+}
+
+function ensureIdleMonitor() {
+  if (idleMonitor) {
+    return;
+  }
+
+  idleMonitor = setInterval(() => {
+    pruneInactiveSessions();
+    scheduleExitWhenIdle();
+  }, IDLE_MONITOR_INTERVAL_MS);
+
+  if (typeof idleMonitor.unref === "function") {
+    idleMonitor.unref();
+  }
+}
+
+function buildMissingFrontendHtml() {
+  const title = "前端资源缺失";
+  const details = isPackagedExe
+    ? [
+        "当前是 EXE 运行模式，但同目录下没有找到 dist 前端资源。",
+        "请不要只单独复制 ai-diviner.exe。",
+        "请保留整个 release/exe 目录，或重新执行 npm install 与 npm run build:exe。"
+      ]
+    : [
+        "当前仓库缺少 dist 前端资源。",
+        "请先在项目根目录执行 npm install 与 npm run build。"
+      ];
+
+  const items = details.map((item) => `<li>${item}</li>`).join("");
+
+  return `<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${title}</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Microsoft YaHei", sans-serif;
+        background: linear-gradient(180deg, #f6f1e8 0%, #e7dcc9 100%);
+        color: #2f2418;
+      }
+      main {
+        max-width: 720px;
+        margin: 8vh auto;
+        padding: 32px;
+        background: rgba(255, 251, 245, 0.9);
+        border: 1px solid #d4c4ab;
+        border-radius: 18px;
+        box-shadow: 0 18px 50px rgba(63, 42, 19, 0.12);
+      }
+      h1 {
+        margin-top: 0;
+        font-size: 28px;
+      }
+      p, li {
+        line-height: 1.7;
+        font-size: 16px;
+      }
+      code {
+        padding: 2px 6px;
+        background: #f0e6d8;
+        border-radius: 6px;
+      }
+      .meta {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px dashed #ccb89a;
+        color: #6b563f;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>${title}</h1>
+      <p>服务已经启动，但浏览器页面所需的前端文件不存在，所以无法显示占卜界面。</p>
+      <ul>${items}</ul>
+      <div class="meta">
+        <p>运行模式：源码模式</p>
+        <p>dist 目录：<code>${distDir}</code></p>
+        <p>hasDist：<code>${String(hasDist)}</code></p>
+      </div>
+    </main>
+  </body>
+</html>`;
+}
 
 app.use(cors());
 app.use(express.json());
@@ -27,6 +159,29 @@ if (hasDist) {
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "ai-diviner-api" });
+});
+
+app.post("/api/session/ping", (req, res) => {
+  const sessionId = String((req.body && req.body.sessionId) || "").trim();
+  if (!sessionId) {
+    return res.status(400).json({ error: "missing sessionId" });
+  }
+
+  hadActiveSession = true;
+  clientSessions.set(sessionId, Date.now());
+  clearExitTimer();
+  ensureIdleMonitor();
+  return res.json({ ok: true });
+});
+
+app.post("/api/session/close", (req, res) => {
+  const sessionId = String((req.body && req.body.sessionId) || "").trim();
+  if (sessionId) {
+    clientSessions.delete(sessionId);
+  }
+
+  scheduleExitWhenIdle();
+  return res.json({ ok: true });
 });
 
 app.post("/api/reading", async (req, res) => {
@@ -114,6 +269,14 @@ if (hasDist) {
     }
 
     return res.sendFile(path.join(distDir, "index.html"));
+  });
+} else {
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) {
+      return next();
+    }
+
+    return res.status(503).type("html").send(buildMissingFrontendHtml());
   });
 }
 

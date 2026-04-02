@@ -23,6 +23,7 @@ body {
 }
 
 body {
+  min-height: 100dvh;
   font-family: "Noto Serif SC", serif;
   color: var(--text);
   background: radial-gradient(circle at 20% 10%, #3a166e 0%, transparent 40%),
@@ -48,14 +49,14 @@ body {
 .page {
   position: relative;
   z-index: 1;
-  max-width: 1400px;
-  min-height: 90vh;
+  max-width: 1600px;
+  min-height: 100dvh;
   margin: 0 auto;
-  padding: 32px 20px 56px;
+  padding: clamp(14px, 2.4vw, 32px) clamp(12px, 2vw, 20px) clamp(24px, 5vh, 56px);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
   grid-template-rows: auto 1fr;
-  gap: 24px;
+  gap: clamp(12px, 1.8vw, 24px);
   align-items: stretch;
 }
 
@@ -67,16 +68,17 @@ body {
 
 .page-left {
   display: grid;
-  gap: 18px;
-  height: 100%;
+  gap: clamp(10px, 1.4vw, 18px);
+  align-content: start;
+  min-height: 0;
 }
 
 .page-right {
   display: grid;
-  gap: 18px;
+  gap: clamp(10px, 1.4vw, 18px);
   grid-template-rows: 1fr;
   align-content: stretch;
-  height: 100%;
+  min-height: 0;
 }
 
 .hero {
@@ -203,18 +205,19 @@ select {
 .cards-grid {
   margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
   gap: 14px;
   perspective: 1200px;
 }
 
 .tarot-card {
+  width: 100%;
   aspect-ratio: 2 / 3;
   border-radius: 14px;
   transform-style: preserve-3d;
   animation: card-rise 560ms ease both;
   animation-delay: var(--delay);
-  max-width: 320px;
+  max-width: 100%;
 }
 
 .card-inner {
@@ -440,7 +443,6 @@ select {
 
 .reading-panel {
   min-height: 0;
-  height: 100%;
   display: grid;
   grid-template-rows: auto 1fr;
 }
@@ -449,18 +451,23 @@ select {
   display: grid;
   align-content: start;
   gap: 12px;
-  height: 100%;
+  min-height: 0;
 }
 
 .per-card {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
   gap: 10px;
 }
 
 .reading-panel .per-card {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
   gap: 12px;
+}
+
+.cards-panel,
+.reading-panel {
+  min-height: 0;
 }
 
 .per-card article,
@@ -537,12 +544,133 @@ select {
 @media (max-width: 1200px) {
   .page {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .cards-grid,
+  .per-card,
+  .reading-panel .per-card {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 860px) {
-  .cards-grid,
-  .per-card {
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tarot-card {
+    max-width: 280px;
+    margin-inline: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 860px) {
+  .page {
+    padding: 12px 12px 18px;
+    gap: 10px;
+  }
+
+  .hero {
+    padding: 8px 8px 6px;
+  }
+
+  h1 {
+    margin: 6px 0;
+    font-size: clamp(1.35rem, 3.2vw, 2rem);
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .panel {
+    padding: 10px;
+  }
+
+  .page-left {
+    gap: 8px;
+  }
+
+  .ask-panel {
+    gap: 8px;
+  }
+
+  .ask-panel label,
+  .config-row label {
+    font-size: 0.9rem;
+  }
+
+  textarea {
+    min-height: 64px;
+    padding: 9px 10px;
+    font-size: 0.92rem;
+  }
+
+  select {
+    padding: 8px 10px;
+    font-size: 0.92rem;
+  }
+
+  .oracle-btn {
+    padding: 9px 16px;
+    font-size: 0.9rem;
+  }
+
+  .cards-panel {
+    padding-top: 8px;
+  }
+
+  .cards-panel h2 {
+    margin: 0 0 6px;
+    font-size: 1.02rem;
+  }
+
+  .cards-grid {
+    margin-top: 4px;
+    gap: 8px;
+  }
+
+  .tarot-card {
+    max-width: 180px;
+  }
+
+  .card-illustration {
+    min-height: 88px;
+  }
+
+  .card-front h3 {
+    font-size: 0.82rem;
+  }
+
+  .orientation,
+  .position {
+    font-size: 0.72rem;
+  }
+
+  .per-card,
+  .reading-panel .per-card {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-height: 740px) {
+  .eyebrow {
+    font-size: 0.66rem;
+  }
+
+  .subtitle {
+    font-size: 0.84rem;
+  }
+
+  .cards-grid {
     grid-template-columns: 1fr;
   }
 
@@ -555,9 +683,18 @@ select {
   }
 
   .tarot-card {
-    max-width: 260px;
-    margin-inline: auto;
-    width: 100%;
+    max-width: 190px;
+  }
+
+  .card-illustration {
+    min-height: 74px;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 1100px) {
+  .page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
 }
 
