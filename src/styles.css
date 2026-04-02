@@ -54,7 +54,7 @@ body {
   margin: 0 auto;
   padding: clamp(14px, 2.4vw, 32px) clamp(12px, 2vw, 20px) clamp(24px, 5vh, 56px);
   display: grid;
-  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: auto 1fr;
   gap: clamp(12px, 1.8vw, 24px);
   align-items: stretch;
@@ -68,9 +68,11 @@ body {
 
 .page-left {
   display: grid;
+  grid-template-rows: auto 1fr;
   gap: clamp(10px, 1.4vw, 18px);
   align-content: start;
   min-height: 0;
+  height: 100%;
 }
 
 .page-right {
@@ -79,6 +81,7 @@ body {
   grid-template-rows: 1fr;
   align-content: stretch;
   min-height: 0;
+  height: 100%;
 }
 
 .hero {
